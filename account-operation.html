@@ -1,0 +1,157 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="./mixin-polymer-bank.html">
+<link rel="import" href="./banco-coreano.html">
+<link rel="import" href="./banco-chino.html">
+<link rel="import" href="./banco-mexicano.html">
+<link rel="import" href="./banco-japon.html">
+
+<dom-module id="account-operation">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+
+      .depositCard {
+        display: flex;
+        margin: 10px 0;
+        flex-direction: column;
+      }
+    </style>
+
+    <p>Bienvenido {{accountName}} con número de cuenta {{accountNumber}}</p>
+
+    <button on-click="_depositMoney">Deposito de dinero</button>
+    <button>Realizar compra</button>
+    <button>Cambiar banco origen</button>
+    <template is="dom-if" if="[[isDepositMoney]]">
+      <div class="depositCard">
+        Ingresa el monto que deseas depositar
+        <input type="number" value="{{amountOfDeposit::input}}"/>
+        <p>Y por favor selecciona el banco en el que deseas ingresar el deposito.</p>
+        <select value="{{currentBank::change}}">
+          <template is="dom-repeat" items="[[banks]]">
+            <option value="[[item.idBank]]">[[item.nameBank]]</option>
+          </template>
+        </select>
+        <button on-click="_ingresarDinero">Ingresar el dinero</button>
+      </div>
+    </template>
+    <banco-coreano id="bancoCoreano"
+                   on-bank-corean-deposit-success="_logTransactions"
+                   on-bank-corean-withdraw-success="_logTransactions"
+                   on-bank-corean-send-limit-error="_errorAmountLimit"></banco-coreano>
+    <banco-chino id="bancoChino"
+                 on-bank-chino-deposit-success="_logTransactions"
+                 on-bank-chino-withdraw-success="_logTransactions"
+                 on-bank-chino-send-limit-error="_errorAmountLimit"></banco-chino>
+    <banco-mexicano id="bancoMexicano"
+                    on-bank-mexicano-deposit-success="_logTransactions"
+                    on-bank-mexicano-withdraw-success="_logTransactions"
+                    on-bank-mexicano-send-limit-error="_errorAmountLimit"></banco-mexicano>
+    <banco-japon id="bancoJapon"
+                 on-bank-japan-send-limit-error="_errorAmountLimit"
+                 on-bank-japan-deposit-success="_logTransactions"
+                 on-bank-japan-withdraw-success="_logTransactions"></banco-japon>
+
+
+
+      <h1>Transaccion</h1>
+      <template is="dom-repeat" items="[[transactions]]" as="transaction">
+        <p>[[transaction]]</p>
+      </template>
+
+  </template>
+
+  <script>
+    /**
+     * `account-operation`
+     *
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class AccountOperation extends MixinPolymerBank(Polymer.Element) {
+      static get is(){return 'account-operation';}
+      static get properties() {
+        return {
+          accountNumber: {
+            type: String,
+          },
+          accountName: {
+            type: String,
+          },
+          amounts: {
+            type: Object,
+            value: {}
+          },
+          bankSelection: {
+            type: String
+          },
+          currentBank: {
+            type: Object
+          },
+          isDepositMoney: Boolean,
+          transactions: {
+            type: Array,
+            value: []
+          }
+        };
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        console.log(this.banks);
+      }
+      _isValidTransactionArray() {
+        return this.transactions.length > 0;
+      }
+
+      _errorAmountLimit(ev) {
+        this.push('transactions', ev.detail.errorMessage);
+        alert(ev.detail.errorMessage);
+      }
+
+      _depositMoney() {
+        console.log('vamos a meter dinero');
+        this.set('isDepositMoney', true);
+      }
+
+      _logTransactions(ev) {
+        this.push('transactions', ev.detail.message);
+      }
+
+      _ingresarDinero() {
+        /*this.dispatchEvent(new CustomEvent('account-send-money', {
+          detail: {
+            amount: parseInt(this.amountOfDeposit, 10),
+            selectedBank: this.currentBank
+          }
+        }));
+        */
+
+
+        console.log(this.currentBank);
+        switch(this.currentBank) {
+          case 'banco-japon':
+            this.$.bancoJapon.deposit(parseInt(this.amountOfDeposit, 10));
+            break;
+          case 'banco-corea':
+            this.$.bancoCoreano.deposit(parseInt(this.amountOfDeposit, 10));
+            break;
+          case 'banco-mexicano':
+            this.$.bancoMexicano.deposit(parseInt(this.amountOfDeposit, 10));
+            break;
+          default:
+            this.$.bancoChino.deposit(parseInt(this.amountOfDeposit, 10));
+            break;
+        }
+
+
+      }
+    }
+
+    window.customElements.define(AccountOperation.is, AccountOperation);
+  </script>
+</dom-module>

@@ -1,0 +1,20 @@
+<link rel="import" href="../polymer/polymer-element.html">
+
+<script>
+  const mixinPolymerBank = Base => class extends Base {
+    addBank(bank) {
+      this.push('banks', bank);
+    }
+
+    static get properties() {
+      return {
+        banks: {
+          type: Array,
+          value: []
+        }
+      }
+    }
+  };
+
+  const MixinPolymerBank = Polymer.dedupingMixin(mixinPolymerBank);
+</script>

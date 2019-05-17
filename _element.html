@@ -1,0 +1,36 @@
+<link rel="import" href="../polymer/polymer-element.html">
+
+<dom-module id="banco-coreano">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h2>Hello [[prop1]]!</h2>
+  </template>
+
+  <script>
+    /**
+     * `banco-coreano`
+     * 
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class BancoCoreano extends Polymer.Element {
+      static get is() { return 'banco-coreano'; }
+      static get properties() {
+        return {
+          prop1: {
+            type: String,
+            value: 'banco-coreano'
+          }
+        };
+      }
+    }
+
+    window.customElements.define(BancoCoreano.is, BancoCoreano);
+  </script>
+</dom-module>

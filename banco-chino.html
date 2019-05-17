@@ -1,0 +1,112 @@
+<link rel="import" href="../polymer/polymer-element.html">
+
+<dom-module id="banco-chino">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h2>[[name]] [[currency]] [[amount]]!</h2>
+    <h2>[[isSelected]]</h2>
+    <button disabled$="[[isZero]]" on-click="withdrawMoney">Retiro de dinero</button>
+    <template is="dom-if" if="[[!isZero]]">
+      <input type="number" value="{{amountWithdraw::input}}"/>
+    </template>
+  </template>
+
+  <script>
+    /**
+     * `banco-chino`
+     *
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class BancoChino extends MixinPolymerBank(Polymer.Element) {
+      static get is() { return 'banco-chino'; }
+      static get properties() {
+        return {
+          currency: {
+            type: String,
+            value: 'Yenes',
+            readOnly: true
+          },
+          name: {
+            type: String,
+            value: 'Banco China',
+            readonly: true
+          },
+          idBank: {
+            type: String,
+            computed: '_getNameBank(name)',
+            readonly: true
+          },
+          isSelected: {
+            type: Boolean,
+            value: false,
+            notify: true
+          },
+          amount: {
+            type: Number,
+            value: 0,
+            observer: '_isZeroAmount'
+          },
+          limitOperationAmount: {
+            type: Number,
+            value: 2000
+          }
+        };
+      }
+
+      _isZeroAmount(newAmount) {
+        console.log('aaaa', newAmount);
+        this.set('isZero', !(newAmount > 0));
+      }
+
+      _getNameBank(name) {
+        return name.toLowerCase().replace(' ', '-');
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        this.addBank({
+          nameBank: this.name,
+          idBank: this.idBank,
+          amount: this.amount
+        });
+
+        // window.addEventListener('account-send-money', this._verifyIfMoneyIsForThisBank);
+      }
+
+      deposit(amount) {
+        if (this.amount + amount > this.limitOperationAmount) {
+          this.dispatchEvent(new CustomEvent('bank-chino-send-limit-error', {
+            detail: {
+              errorMessage: `${new Date()}: Para el banco ${this.name} el monto de ${amount} si se ingresa supera el límite de la cuenta que es ${this.limitOperationAmount}`
+            }
+          }));
+        } else {
+          this.amount = this.amount + amount;
+          this.dispatchEvent(new CustomEvent('bank-chino-deposit-success', {
+            detail: {
+              message: `${new Date()}: Ingreso de dinero correcto al banco ${this.name} por el monto de ${amount}`
+            }
+          }));
+        }
+      }
+
+      withdrawMoney() {
+        this.amount = this.amount - this.amountWithdraw;
+        this.dispatchEvent(new CustomEvent('bank-chino-withdraw-success', {
+          detail: {
+            message: `${new Date()}: Retiro de dinero correcto del banco ${this.name} por el monto de ${this.amountWithdraw}`
+          }
+        }));
+      }
+    }
+
+    window.customElements.define(BancoChino.is, BancoChino);
+  </script>
+</dom-module>
